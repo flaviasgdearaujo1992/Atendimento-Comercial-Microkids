@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Search, Home, FileText, Bell, HelpCircle, Menu, X, 
   Download, ChevronDown, ChevronUp, Plus, Trash2, 
-  Settings, ExternalLink, LogIn, MessageSquare, Users,
+  Settings, ExternalLink, MessageSquare, Users,
   ArrowRight, ShieldCheck, Lock, ArrowLeft, UserPlus, Loader2
 } from 'lucide-react';
 import { FAQItem, DocumentItem, Announcement, ViewState, UserLog } from './types';
@@ -27,7 +27,6 @@ const INITIAL_ANNOUNCEMENTS: Announcement[] = [
   { id: '2', title: 'Nova Certificação Comercial', content: 'Treinamento obrigatório para todos os vendedores disponível na plataforma de EAD.', date: '18/02/2025', isUrgent: false },
 ];
 
-// Removed passwords from mock data
 const INITIAL_USER_LOGS: UserLog[] = [
   { email: 'diretoria@microkids.com.br', lastAccess: new Date(Date.now() - 86400000).toLocaleString(), accessCount: 42 },
   { email: 'gerente.sp@microkids.com.br', lastAccess: new Date(Date.now() - 3600000).toLocaleString(), accessCount: 15 },
@@ -56,9 +55,7 @@ const Navbar: React.FC<{
   setView: (v: ViewState) => void; 
   toggleMobileMenu: () => void;
   isMobileMenuOpen: boolean;
-  currentUser: string;
-  onLogout: () => void;
-}> = ({ currentView, setView, toggleMobileMenu, isMobileMenuOpen, currentUser, onLogout }) => {
+}> = ({ currentView, setView, toggleMobileMenu, isMobileMenuOpen }) => {
   const navItems = [
     { id: 'home', label: 'Início', icon: <Home size={20} /> },
     { id: 'faq', label: 'FAQ', icon: <HelpCircle size={20} /> },
@@ -100,16 +97,10 @@ const Navbar: React.FC<{
                     ? 'bg-slate-100 text-slate-800' 
                     : 'text-slate-400 hover:text-slate-600'
                 }`}
-                title="Admin Area"
+                title="Área Administrativa"
               >
                 <Settings size={18} />
               </button>
-              <div className="border-l border-slate-300 pl-4 ml-2 flex items-center gap-3">
-                 <span className="text-xs text-slate-500 font-medium truncate max-w-[120px]" title={currentUser}>{currentUser}</span>
-                 <button onClick={onLogout} className="text-red-500 hover:bg-red-50 p-1.5 rounded-full" title="Sair">
-                    <LogOutIcon size={16} />
-                 </button>
-              </div>
           </div>
 
           {/* Mobile Menu Button */}
@@ -128,9 +119,6 @@ const Navbar: React.FC<{
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white border-b border-slate-100">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-             <div className="px-3 py-2 text-sm text-slate-500 border-b border-slate-100 mb-2">
-                Logado como: <span className="font-semibold text-slate-700">{currentUser}</span>
-             </div>
             {navItems.map((item) => (
               <button
                 key={item.id}
@@ -152,13 +140,6 @@ const Navbar: React.FC<{
                 <Settings size={20} />
                 Administração
               </button>
-              <button
-                onClick={onLogout}
-                className="w-full text-left px-3 py-3 rounded-md text-base font-medium flex items-center gap-3 text-red-500 hover:bg-red-50 mt-2 border-t border-slate-100"
-              >
-                <LogOutIcon size={20} />
-                Sair
-              </button>
           </div>
         </div>
       )}
@@ -166,18 +147,12 @@ const Navbar: React.FC<{
   );
 };
 
-// Icon helper
-const LogOutIcon = ({size}: {size: number}) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
-)
-
 // 3. Home View
 const HomeView: React.FC<{
   setView: (v: ViewState) => void; 
   onSearch: (q: string) => void;
   announcements: Announcement[];
-  currentUser: string;
-}> = ({ setView, onSearch, announcements, currentUser }) => {
+}> = ({ setView, onSearch, announcements }) => {
   const [query, setQuery] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -201,8 +176,8 @@ const HomeView: React.FC<{
         </div>
         
         <div className="relative z-10 max-w-2xl mx-auto text-center">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">Olá, Vendedor Microkids</h1>
-          <p className="text-blue-100 text-lg mb-8">Bem-vindo(a), {currentUser.split('@')[0]}. Encontre respostas, documentos e suporte para suas vendas.</p>
+          <h1 className="text-3xl md:text-4xl font-bold mb-4">Olá, Vendedor</h1>
+          <p className="text-blue-100 text-lg mb-8">Bem-vindo(a) ao portal Microkids. Encontre respostas, documentos e suporte para suas vendas.</p>
           
           <form onSubmit={handleSubmit} className="relative max-w-lg mx-auto">
             <input 
@@ -443,86 +418,7 @@ const AnnouncementView: React.FC<{ items: Announcement[] }> = ({ items }) => {
   );
 };
 
-// 7. Login View
-const LoginView: React.FC<{ 
-  onLogin: (email: string) => Promise<void> 
-}> = ({ onLogin }) => {
-  const [email, setEmail] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    
-    if (!email || !email.includes('@') || !email.includes('.')) {
-      setError('Por favor, insira um e-mail válido.');
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      await onLogin(email);
-    } catch (err) {
-      console.error(err);
-      setError('Ocorreu um erro ao acessar.');
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 border border-slate-100">
-        <div className="flex flex-col items-center mb-8">
-           <img src="microkids-logo-1.png" alt="Microkids" className="h-12 w-auto object-contain mb-6" />
-           <h1 className="text-2xl font-bold text-slate-800 text-center">
-             Portal do Vendedor
-           </h1>
-           <p className="text-slate-500 text-center mt-2">Identifique-se para acessar</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">E-mail Corporativo</label>
-            <div className="relative">
-              <input 
-                id="email"
-                type="email" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="seu.nome@microkids.com.br"
-                className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                autoFocus
-                disabled={loading}
-              />
-              <LogIn className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            </div>
-            {error && <p className="text-red-500 text-sm mt-2 ml-1">{error}</p>}
-          </div>
-
-          <button 
-            type="submit" 
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all flex items-center justify-center gap-2 group shadow-lg shadow-blue-200"
-          >
-            {loading ? <Loader2 className="animate-spin" size={20} /> : (
-                <>
-                Acessar Portal
-                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                </>
-            )}
-          </button>
-        </form>
-
-        <p className="text-xs text-center text-slate-400 mt-8">
-          Acesso exclusivo para colaboradores e representantes.
-        </p>
-      </div>
-    </div>
-  );
-};
-
-// 8. Admin Panel
+// 7. Admin Panel
 const AdminPanel: React.FC<{
   faqs: FAQItem[];
   setFaqs: React.Dispatch<React.SetStateAction<FAQItem[]>>;
@@ -586,7 +482,7 @@ const AdminPanel: React.FC<{
             onClick={() => setActiveTab('users')}
             className={`flex-1 min-w-[120px] py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'users' ? 'border-blue-600 text-blue-600 bg-blue-50' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
           >
-            Usuários e Acessos
+            Histórico de Acessos
           </button>
         </div>
 
@@ -639,8 +535,8 @@ const AdminPanel: React.FC<{
           {activeTab === 'users' && (
              <div>
                 <div className="mb-6 flex justify-between items-end">
-                   <h3 className="font-semibold text-lg text-slate-800">Registro de Acessos</h3>
-                   <span className="text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full">{userLogs.length} Usuários Registrados</span>
+                   <h3 className="font-semibold text-lg text-slate-800">Registro de Acessos (Histórico)</h3>
+                   <span className="text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full">{userLogs.length} Registros</span>
                 </div>
                 
                 <div className="overflow-x-auto">
@@ -650,7 +546,6 @@ const AdminPanel: React.FC<{
                             <th className="px-6 py-3">E-mail</th>
                             <th className="px-6 py-3">Último Acesso</th>
                             <th className="px-6 py-3 text-center">Total de Acessos</th>
-                            <th className="px-6 py-3 text-center">Status</th>
                          </tr>
                       </thead>
                       <tbody>
@@ -659,11 +554,6 @@ const AdminPanel: React.FC<{
                                <td className="px-6 py-4 font-medium text-slate-900">{log.email}</td>
                                <td className="px-6 py-4">{log.lastAccess}</td>
                                <td className="px-6 py-4 text-center">{log.accessCount}</td>
-                               <td className="px-6 py-4 text-center">
-                                  <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium inline-flex items-center gap-1">
-                                     <ShieldCheck size={12} /> Ativo
-                                  </span>
-                               </td>
                             </tr>
                          ))}
                       </tbody>
@@ -689,9 +579,6 @@ const AdminPanel: React.FC<{
 // --- MAIN APP ---
 
 const App: React.FC = () => {
-  // Login State
-  const [currentUser, setCurrentUser] = useState<string | null>(null);
-  
   // App View State
   const [currentView, setCurrentView] = useState<ViewState>('home');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -701,48 +588,12 @@ const App: React.FC = () => {
   const [faqs, setFaqs] = useState<FAQItem[]>(INITIAL_FAQS);
   const [docs, setDocs] = useState<DocumentItem[]>(INITIAL_DOCS);
   const [news, setNews] = useState<Announcement[]>(INITIAL_ANNOUNCEMENTS);
-  const [userLogs, setUserLogs] = useState<UserLog[]>(INITIAL_USER_LOGS);
+  // User logs are now static since we removed the login gate
+  const [userLogs] = useState<UserLog[]>(INITIAL_USER_LOGS);
 
   const handleSearch = (q: string) => {
     setSearchQuery(q);
   };
-
-  const handleLogin = async (email: string): Promise<void> => {
-    return new Promise((resolve) => {
-        // Simulate network delay
-        setTimeout(() => {
-            const now = new Date().toLocaleString();
-            const existingUser = userLogs.find(u => u.email === email);
-
-            if (existingUser) {
-                // Just update access count
-                setUserLogs(prevLogs => prevLogs.map(u => 
-                    u.email === email 
-                    ? { ...u, lastAccess: now, accessCount: u.accessCount + 1 } 
-                    : u
-                ));
-            } else {
-                // Register new user automatically (no password)
-                setUserLogs(prevLogs => [
-                    ...prevLogs, 
-                    { email, lastAccess: now, accessCount: 1 }
-                ]);
-            }
-            setCurrentUser(email);
-            resolve();
-        }, 800);
-    });
-  };
-
-  const handleLogout = () => {
-    setCurrentUser(null);
-    setCurrentView('home');
-  };
-
-  // Guard Clause: If not logged in, show login screen
-  if (!currentUser) {
-    return <LoginView onLogin={handleLogin} />;
-  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
@@ -751,8 +602,6 @@ const App: React.FC = () => {
         setView={setCurrentView} 
         toggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         isMobileMenuOpen={isMobileMenuOpen}
-        currentUser={currentUser}
-        onLogout={handleLogout}
       />
       
       <main className="flex-grow">
@@ -761,7 +610,6 @@ const App: React.FC = () => {
             setView={setCurrentView} 
             onSearch={handleSearch}
             announcements={news}
-            currentUser={currentUser}
           />
         )}
         {currentView === 'faq' && <FAQView items={faqs} initialSearch={searchQuery} />}
