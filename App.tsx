@@ -4,7 +4,7 @@ import {
   Search, Home, FileText, Bell, HelpCircle, Menu, X, 
   Download, ChevronDown, ChevronUp, Plus, Trash2, 
   Settings, ExternalLink, LogIn, MessageSquare, Users,
-  ArrowRight, ShieldCheck, Lock, ArrowLeft, UserPlus
+  ArrowRight, ShieldCheck, Lock, ArrowLeft, UserPlus, Loader2
 } from 'lucide-react';
 import { FAQItem, DocumentItem, Announcement, ViewState, UserLog } from './types';
 import { ChatWidget } from './components/ChatWidget';
@@ -27,10 +27,10 @@ const INITIAL_ANNOUNCEMENTS: Announcement[] = [
   { id: '2', title: 'Nova Certificação Comercial', content: 'Treinamento obrigatório para todos os vendedores disponível na plataforma de EAD.', date: '18/02/2025', isUrgent: false },
 ];
 
-// Added passwords '1234' for testing
+// Removed passwords from mock data
 const INITIAL_USER_LOGS: UserLog[] = [
-  { email: 'diretoria@microkids.com.br', password: '1234', lastAccess: new Date(Date.now() - 86400000).toLocaleString(), accessCount: 42 },
-  { email: 'gerente.sp@microkids.com.br', password: '1234', lastAccess: new Date(Date.now() - 3600000).toLocaleString(), accessCount: 15 },
+  { email: 'diretoria@microkids.com.br', lastAccess: new Date(Date.now() - 86400000).toLocaleString(), accessCount: 42 },
+  { email: 'gerente.sp@microkids.com.br', lastAccess: new Date(Date.now() - 3600000).toLocaleString(), accessCount: 15 },
 ];
 
 // --- COMPONENTS ---
@@ -445,17 +445,13 @@ const AnnouncementView: React.FC<{ items: Announcement[] }> = ({ items }) => {
 
 // 7. Login View
 const LoginView: React.FC<{ 
-  onLogin: (email: string, pin: string) => Promise<{success: boolean, message?: string}> 
+  onLogin: (email: string) => Promise<void> 
 }> = ({ onLogin }) => {
-  const [step, setStep] = useState<'email' | 'pin'>('email');
-  const [mode, setMode] = useState<'login' | 'register'>('login');
-  
   const [email, setEmail] = useState('');
-  const [pin, setPin] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleEmailSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     
@@ -464,50 +460,14 @@ const LoginView: React.FC<{
       return;
     }
     
-    // In a real app, you would check api here.
-    // For this demo, we assume the parent 'onLogin' handles the "check if exists" logic during the final submit,
-    // OR we could pass a `checkUserExists` prop. 
-    // To make the UI responsive, let's just proceed to PIN entry.
-    // We will let the user enter credentials, and the parent will decide if it is a match or a new registration 
-    // based on whether the email exists in state.
-    // *HOWEVER*, for a better UX (Smart Flow), let's assume we proceed.
-    setStep('pin');
-  };
-
-  const handlePinSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    if (!/^\d{4}$/.test(pin)) {
-      setError('A senha deve conter exatamente 4 números.');
-      return;
-    }
-
     setLoading(true);
     try {
-      const result = await onLogin(email, pin);
-      if (!result.success) {
-        if (result.message?.includes('register')) {
-           // Logic handled in parent, but if we wanted to change UI state explicitly:
-           setMode('register');
-           // Retrying with same credentials in "register mode" usually happens automatically in backend,
-           // but here we might want to confirm "Do you want to create an account?"
-           // For simplicity, the App.tsx logic will handle "If new, create. If existing, check."
-        }
-        setError(result.message || 'Erro ao acessar.');
-      }
+      await onLogin(email);
     } catch (err) {
-      setError('Ocorreu um erro inesperado.');
-    } finally {
+      console.error(err);
+      setError('Ocorreu um erro ao acessar.');
       setLoading(false);
     }
-  };
-
-  const reset = () => {
-    setStep('email');
-    setPin('');
-    setError('');
-    setMode('login');
   };
 
   return (
@@ -516,92 +476,46 @@ const LoginView: React.FC<{
         <div className="flex flex-col items-center mb-8">
            <img src="microkids-logo-1.png" alt="Microkids" className="h-12 w-auto object-contain mb-6" />
            <h1 className="text-2xl font-bold text-slate-800 text-center">
-             {step === 'email' ? 'Acesso Restrito' : 'Validação de Acesso'}
+             Portal do Vendedor
            </h1>
-           <p className="text-slate-500 text-center mt-2">Portal do Vendedor e Representante</p>
+           <p className="text-slate-500 text-center mt-2">Identifique-se para acessar</p>
         </div>
 
-        {step === 'email' ? (
-          <form onSubmit={handleEmailSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">E-mail Corporativo</label>
-              <div className="relative">
-                <input 
-                  id="email"
-                  type="email" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="seu.nome@microkids.com.br"
-                  className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  autoFocus
-                />
-                <LogIn className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              </div>
-              {error && <p className="text-red-500 text-sm mt-2 ml-1">{error}</p>}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">E-mail Corporativo</label>
+            <div className="relative">
+              <input 
+                id="email"
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="seu.nome@microkids.com.br"
+                className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                autoFocus
+                disabled={loading}
+              />
+              <LogIn className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             </div>
+            {error && <p className="text-red-500 text-sm mt-2 ml-1">{error}</p>}
+          </div>
 
-            <button 
-              type="submit" 
-              className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all flex items-center justify-center gap-2 group shadow-lg shadow-blue-200"
-            >
-              Continuar
-              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-            </button>
-          </form>
-        ) : (
-          <form onSubmit={handlePinSubmit} className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-             <div className="text-center mb-4">
-                <span className="text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full">{email}</span>
-                <button type="button" onClick={reset} className="text-xs text-blue-600 ml-2 hover:underline">Alterar</button>
-             </div>
-
-            <div>
-              <label htmlFor="pin" className="block text-sm font-medium text-slate-700 mb-1 text-center">
-                Digite sua senha de 4 dígitos
-              </label>
-              <div className="relative max-w-[200px] mx-auto">
-                <input 
-                  id="pin"
-                  type="password" 
-                  inputMode="numeric"
-                  maxLength={4}
-                  value={pin}
-                  onChange={(e) => {
-                    // Allow only numbers
-                    const val = e.target.value.replace(/\D/g, '');
-                    setPin(val);
-                  }}
-                  placeholder="****"
-                  className="w-full text-center tracking-[0.5em] text-2xl pl-4 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  autoFocus
-                />
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              </div>
-              <p className="text-xs text-slate-400 text-center mt-2">Apenas números</p>
-              {error && <p className="text-red-500 text-sm mt-2 text-center">{error}</p>}
-            </div>
-
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all flex items-center justify-center gap-2 group shadow-lg shadow-blue-200"
-            >
-              {loading ? 'Verificando...' : 'Entrar no Portal'}
-              {!loading && <ShieldCheck size={18} />}
-            </button>
-            
-            <button 
-              type="button" 
-              onClick={reset}
-              className="w-full text-slate-500 text-sm py-2 hover:text-slate-700 flex items-center justify-center gap-1"
-            >
-              <ArrowLeft size={14} /> Voltar
-            </button>
-          </form>
-        )}
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all flex items-center justify-center gap-2 group shadow-lg shadow-blue-200"
+          >
+            {loading ? <Loader2 className="animate-spin" size={20} /> : (
+                <>
+                Acessar Portal
+                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                </>
+            )}
+          </button>
+        </form>
 
         <p className="text-xs text-center text-slate-400 mt-8">
-          Primeiro acesso? Insira seu e-mail e crie sua senha de 4 números.
+          Acesso exclusivo para colaboradores e representantes.
         </p>
       </div>
     </div>
@@ -793,7 +707,7 @@ const App: React.FC = () => {
     setSearchQuery(q);
   };
 
-  const handleLogin = async (email: string, pin: string): Promise<{success: boolean, message?: string}> => {
+  const handleLogin = async (email: string): Promise<void> => {
     return new Promise((resolve) => {
         // Simulate network delay
         setTimeout(() => {
@@ -801,30 +715,21 @@ const App: React.FC = () => {
             const existingUser = userLogs.find(u => u.email === email);
 
             if (existingUser) {
-                // Check password
-                if (existingUser.password === pin) {
-                    // Success - Login
-                    setUserLogs(prevLogs => prevLogs.map(u => 
-                        u.email === email 
-                        ? { ...u, lastAccess: now, accessCount: u.accessCount + 1 } 
-                        : u
-                    ));
-                    setCurrentUser(email);
-                    resolve({ success: true });
-                } else {
-                    // Fail
-                    resolve({ success: false, message: 'Senha incorreta.' });
-                }
+                // Just update access count
+                setUserLogs(prevLogs => prevLogs.map(u => 
+                    u.email === email 
+                    ? { ...u, lastAccess: now, accessCount: u.accessCount + 1 } 
+                    : u
+                ));
             } else {
-                // Register new user
-                // In a real app we might ask for confirmation, but here we "Just do it" for practicality
+                // Register new user automatically (no password)
                 setUserLogs(prevLogs => [
                     ...prevLogs, 
-                    { email, password: pin, lastAccess: now, accessCount: 1 }
+                    { email, lastAccess: now, accessCount: 1 }
                 ]);
-                setCurrentUser(email);
-                resolve({ success: true });
             }
+            setCurrentUser(email);
+            resolve();
         }, 800);
     });
   };
