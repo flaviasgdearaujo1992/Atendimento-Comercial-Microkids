@@ -37,20 +37,42 @@ const ALLOWED_ADMINS = [
   { username: 'Microkids', password: '1996' }
 ];
 
+// --- STORAGE KEYS ---
+const STORAGE_KEYS = {
+  FAQS: 'mk_faqs_data',
+  DOCS: 'mk_docs_data',
+  NEWS: 'mk_news_data'
+};
+
 // --- COMPONENTS ---
 
 // 0. SVG Logos (Adjusted to prevent distortion)
+// Using img tags as requested for stability
 const MicrokidsLogo = () => (
+  <img 
+    src="/microkids-logo-1.png" 
+    alt="Microkids Portal do Vendedor" 
+    className="h-8 md:h-10 w-auto object-contain"
+    onError={(e) => {
+      // Fallback SVG if image is missing
+      const target = e.target as HTMLImageElement;
+      target.style.display = 'none';
+      target.parentElement?.querySelector('.fallback-logo')?.classList.remove('hidden');
+    }}
+  />
+);
+
+const FallbackLogo = () => (
   <svg 
     viewBox="0 0 160 40" 
-    className="h-8 md:h-10 w-auto shrink-0" 
+    className="fallback-logo hidden h-8 md:h-10 w-auto shrink-0" 
     aria-label="Microkids"
     preserveAspectRatio="xMidYMid meet"
     fill="none"
   >
     <path fill="#1d4ed8" d="M22.5,38.5h-5.8l-2.6-9.2c-0.6-2.2-1.1-4.8-1.5-7.3h-0.1c-0.4,2.5-1,5.2-1.6,7.3l-2.7,9.2H2.3l4.8-16.1 L2.6,6.3h5.9l2.4,8.8c0.6,2.2,1.1,4.7,1.5,7.1h0.1c0.4-2.4,0.9-4.9,1.5-7.1l2.5-8.8h5.8L22.5,38.5z M26.9,8.5c0-1.6,1.2-2.8,2.9-2.8 c1.7,0,2.9,1.2,2.9,2.8c0,1.7-1.2,2.9-2.9,2.9C28.1,11.3,26.9,10.1,26.9,8.5z M27.1,38.5V13.6h5.4v24.9H27.1z M43.7,39 c-4.6,0-8.1-3.6-8.1-8.5c0-4.9,3.5-8.6,8.2-8.6c2.4,0,4.3,0.9,5.5,2.3l-3.3,3.3c-0.6-0.8-1.4-1.2-2.3-1.2c-1.9,0-3,1.6-3,4.1 c0,2.6,1.2,4.2,3.1,4.2c1,0,1.8-0.4,2.4-1.2l3.3,3.1C48.2,38,46.3,39,43.7,39z M54.6,38.5V13.6h5.4v3.8h0.1c0.7-2.3,2.4-4,4.6-4 v5.2c-0.2,0-0.5-0.1-0.8-0.1c-2.6,0-3.9,1.6-3.9,4.8v15.2H54.6z M76.2,39c-4.9,0-8.5-3.6-8.5-8.6c0-4.9,3.6-8.6,8.5-8.6 c4.9,0,8.5,3.7,8.5,8.6C84.7,35.3,81.1,39,76.2,39z M76.2,34.7c2,0,3.3-1.8,3.3-4.3c0-2.5-1.3-4.3-3.3-4.3c-1.9,0-3.3,1.8-3.3,4.3 C72.9,32.9,74.2,34.7,76.2,34.7z M92.3,38.5V6.3h5.4v18.7l5.2-5.4h6.7l-6.8,6.4l7.2,12.5h-6.4l-4.2-8l-1.7,1.6v6.4H92.3z M112.5,8.5 c0-1.6,1.2-2.8,2.9-2.8c1.7,0,2.9,1.2,2.9,2.8c0,1.7-1.2,2.9-2.9,2.9C113.8,11.3,112.5,10.1,112.5,8.5z M112.7,38.5V13.6h5.4v24.9 H112.7z M131.2,38.5v-3.6h-0.1c-1.1,2.4-3.3,4.1-6,4.1c-4.6,0-7.8-3.7-7.8-8.5c0-4.9,3.3-8.6,7.8-8.6c2.6,0,4.7,1.6,5.8,3.9h0.1V6.3 h5.4v32.2H131.2z M128.4,34.7c1.9,0,3.1-1.6,3.1-4.2c0-2.6-1.2-4.2-3.1-4.2c-2,0-3.2,1.7-3.2,4.2C125.2,33,126.5,34.7,128.4,34.7z M149.2,39c-3.1,0-5.6-1.5-6.6-3.8h-0.1l-1,3.3h-4.9l1.9-6c0.8-2.5,1.7-5,1.7-7.7c0-2.1-1.2-3.3-3.3-3.3h-1.5v-3.7h2.8 c4.5,0,7,2.5,7,6.8c0,2.3-0.7,4.6-1.4,6.7c-0.4,1.4-1,2.9-1.3,4.1c-0.2,0.8-0.1,1.3,0.6,1.3c0.6,0,1.2-0.3,1.8-0.7l1.7,3.5 C155.1,38.6,152.2,39,149.2,39z"/>
   </svg>
-);
+)
 
 const MicrokidsIcon = () => (
    <svg 
@@ -101,6 +123,7 @@ const Navbar: React.FC<{
           <div className="flex items-center cursor-pointer" onClick={() => setView('home')}>
              <div className="flex items-center gap-4">
               <MicrokidsLogo />
+              <FallbackLogo />
               <span className="text-xs text-slate-500 uppercase tracking-widest border-l border-slate-300 pl-4 hidden sm:block font-medium">Portal do Vendedor</span>
             </div>
           </div>
@@ -216,7 +239,7 @@ const HomeView: React.FC<{
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="O que você procura hoje? (ex: prazos, robótica...)"
-              className="w-full pl-12 pr-4 py-4 rounded-full text-slate-900 shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-400/50"
+              className="w-full pl-12 pr-4 py-4 rounded-full bg-slate-800 text-white shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-400/50 placeholder-slate-400"
             />
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
             <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors">
@@ -300,7 +323,7 @@ const FAQView: React.FC<{ items: FAQItem[]; initialSearch: string }> = ({ items,
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Buscar nas perguntas..."
-            className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-400"
           />
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
         </div>
@@ -866,12 +889,38 @@ const App: React.FC = () => {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
 
-  // "Database" State
-  const [faqs, setFaqs] = useState<FAQItem[]>(INITIAL_FAQS);
-  const [docs, setDocs] = useState<DocumentItem[]>(INITIAL_DOCS);
-  const [news, setNews] = useState<Announcement[]>(INITIAL_ANNOUNCEMENTS);
-  // User logs are now static since we removed the login gate
+  // "Database" State with LocalStorage Persistence
+  const [faqs, setFaqs] = useState<FAQItem[]>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.FAQS);
+    return saved ? JSON.parse(saved) : INITIAL_FAQS;
+  });
+
+  const [docs, setDocs] = useState<DocumentItem[]>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.DOCS);
+    return saved ? JSON.parse(saved) : INITIAL_DOCS;
+  });
+
+  const [news, setNews] = useState<Announcement[]>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.NEWS);
+    return saved ? JSON.parse(saved) : INITIAL_ANNOUNCEMENTS;
+  });
+
+  // User logs are static here as requested to remove login gate, 
+  // but could also be persisted if needed.
   const [userLogs] = useState<UserLog[]>(INITIAL_USER_LOGS);
+
+  // Effects to save data whenever it changes
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.FAQS, JSON.stringify(faqs));
+  }, [faqs]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.DOCS, JSON.stringify(docs));
+  }, [docs]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.NEWS, JSON.stringify(news));
+  }, [news]);
 
   const handleSearch = (q: string) => {
     setSearchQuery(q);
