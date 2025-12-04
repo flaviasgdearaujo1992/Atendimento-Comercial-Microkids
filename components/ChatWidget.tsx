@@ -1,8 +1,22 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Bot, User, Loader2, Minimize2 } from 'lucide-react';
 import { ChatMessage } from '../types';
 import { sendMessageToGemini } from '../services/geminiService';
 import ReactMarkdown from 'react-markdown';
+
+// Define MicrokidsIcon locally to avoid complex exports/circular deps in this setup
+const MicrokidsIcon = () => (
+   <svg 
+    viewBox="0 0 50 50" 
+    className="w-full h-full object-contain" 
+    aria-label="MK"
+    preserveAspectRatio="xMidYMid meet"
+   >
+     <rect width="50" height="50" rx="10" fill="#1d4ed8" />
+     <path fill="#ffffff" d="M12,35h-3.8l-1.6-6c-0.4-1.4-0.7-3.1-1-4.7H5.5c-0.2,1.6-0.6,3.4-1,4.7L2.8,35H-1l3.1-10.4 L0.4,14.2h3.8l1.6,5.7c0.4,1.4,0.7,3,1,4.6h0.1c0.2-1.5,0.6-3.1,1-4.6l1.6-5.7h3.7L12,35z M25.7,35V14.2h3.5v12.1l3.4-3.5h4.3 l-4.4,4.1l4.7,8.1h-4.1l-2.7-5.2l-1.1,1v4.2H25.7z"/>
+   </svg>
+);
 
 export const ChatWidget: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -117,7 +131,7 @@ export const ChatWidget: React.FC = () => {
                   msg.role === 'user' ? 'bg-slate-200 text-slate-600' : 'bg-transparent'
                 }`}
               >
-                {msg.role === 'user' ? <User size={16} /> : <img src="microkids-logo-2.png" alt="MK" className="w-full h-full object-contain" />}
+                {msg.role === 'user' ? <User size={16} /> : <MicrokidsIcon />}
               </div>
               
               <div 

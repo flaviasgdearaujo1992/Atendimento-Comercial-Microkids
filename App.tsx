@@ -4,7 +4,7 @@ import {
   Search, Home, FileText, Bell, HelpCircle, Menu, X, 
   Download, ChevronDown, ChevronUp, Plus, Trash2, 
   Settings, ExternalLink, MessageSquare, Users,
-  ArrowRight, ShieldCheck, Lock, ArrowLeft, UserPlus, Loader2
+  ArrowRight, ShieldCheck, Lock, ArrowLeft, UserPlus, Loader2, Upload
 } from 'lucide-react';
 import { FAQItem, DocumentItem, Announcement, ViewState, UserLog } from './types';
 import { ChatWidget } from './components/ChatWidget';
@@ -32,7 +32,37 @@ const INITIAL_USER_LOGS: UserLog[] = [
   { email: 'gerente.sp@microkids.com.br', lastAccess: new Date(Date.now() - 3600000).toLocaleString(), accessCount: 15 },
 ];
 
+// List of allowed admins
+const ALLOWED_ADMINS = [
+  { username: 'Microkids', password: '1996' }
+];
+
 // --- COMPONENTS ---
+
+// 0. SVG Logos (Adjusted to prevent distortion)
+const MicrokidsLogo = () => (
+  <svg 
+    viewBox="0 0 160 40" 
+    className="h-8 md:h-10 w-auto shrink-0" 
+    aria-label="Microkids"
+    preserveAspectRatio="xMidYMid meet"
+    fill="none"
+  >
+    <path fill="#1d4ed8" d="M22.5,38.5h-5.8l-2.6-9.2c-0.6-2.2-1.1-4.8-1.5-7.3h-0.1c-0.4,2.5-1,5.2-1.6,7.3l-2.7,9.2H2.3l4.8-16.1 L2.6,6.3h5.9l2.4,8.8c0.6,2.2,1.1,4.7,1.5,7.1h0.1c0.4-2.4,0.9-4.9,1.5-7.1l2.5-8.8h5.8L22.5,38.5z M26.9,8.5c0-1.6,1.2-2.8,2.9-2.8 c1.7,0,2.9,1.2,2.9,2.8c0,1.7-1.2,2.9-2.9,2.9C28.1,11.3,26.9,10.1,26.9,8.5z M27.1,38.5V13.6h5.4v24.9H27.1z M43.7,39 c-4.6,0-8.1-3.6-8.1-8.5c0-4.9,3.5-8.6,8.2-8.6c2.4,0,4.3,0.9,5.5,2.3l-3.3,3.3c-0.6-0.8-1.4-1.2-2.3-1.2c-1.9,0-3,1.6-3,4.1 c0,2.6,1.2,4.2,3.1,4.2c1,0,1.8-0.4,2.4-1.2l3.3,3.1C48.2,38,46.3,39,43.7,39z M54.6,38.5V13.6h5.4v3.8h0.1c0.7-2.3,2.4-4,4.6-4 v5.2c-0.2,0-0.5-0.1-0.8-0.1c-2.6,0-3.9,1.6-3.9,4.8v15.2H54.6z M76.2,39c-4.9,0-8.5-3.6-8.5-8.6c0-4.9,3.6-8.6,8.5-8.6 c4.9,0,8.5,3.7,8.5,8.6C84.7,35.3,81.1,39,76.2,39z M76.2,34.7c2,0,3.3-1.8,3.3-4.3c0-2.5-1.3-4.3-3.3-4.3c-1.9,0-3.3,1.8-3.3,4.3 C72.9,32.9,74.2,34.7,76.2,34.7z M92.3,38.5V6.3h5.4v18.7l5.2-5.4h6.7l-6.8,6.4l7.2,12.5h-6.4l-4.2-8l-1.7,1.6v6.4H92.3z M112.5,8.5 c0-1.6,1.2-2.8,2.9-2.8c1.7,0,2.9,1.2,2.9,2.8c0,1.7-1.2,2.9-2.9,2.9C113.8,11.3,112.5,10.1,112.5,8.5z M112.7,38.5V13.6h5.4v24.9 H112.7z M131.2,38.5v-3.6h-0.1c-1.1,2.4-3.3,4.1-6,4.1c-4.6,0-7.8-3.7-7.8-8.5c0-4.9,3.3-8.6,7.8-8.6c2.6,0,4.7,1.6,5.8,3.9h0.1V6.3 h5.4v32.2H131.2z M128.4,34.7c1.9,0,3.1-1.6,3.1-4.2c0-2.6-1.2-4.2-3.1-4.2c-2,0-3.2,1.7-3.2,4.2C125.2,33,126.5,34.7,128.4,34.7z M149.2,39c-3.1,0-5.6-1.5-6.6-3.8h-0.1l-1,3.3h-4.9l1.9-6c0.8-2.5,1.7-5,1.7-7.7c0-2.1-1.2-3.3-3.3-3.3h-1.5v-3.7h2.8 c4.5,0,7,2.5,7,6.8c0,2.3-0.7,4.6-1.4,6.7c-0.4,1.4-1,2.9-1.3,4.1c-0.2,0.8-0.1,1.3,0.6,1.3c0.6,0,1.2-0.3,1.8-0.7l1.7,3.5 C155.1,38.6,152.2,39,149.2,39z"/>
+  </svg>
+);
+
+const MicrokidsIcon = () => (
+   <svg 
+    viewBox="0 0 50 50" 
+    className="h-8 w-8 opacity-40 hover:opacity-100 transition-opacity shrink-0" 
+    aria-label="MK"
+    preserveAspectRatio="xMidYMid meet"
+   >
+     <rect width="50" height="50" rx="10" fill="#1d4ed8" />
+     <path fill="#ffffff" d="M12,35h-3.8l-1.6-6c-0.4-1.4-0.7-3.1-1-4.7H5.5c-0.2,1.6-0.6,3.4-1,4.7L2.8,35H-1l3.1-10.4 L0.4,14.2h3.8l1.6,5.7c0.4,1.4,0.7,3,1,4.6h0.1c0.2-1.5,0.6-3.1,1-4.6l1.6-5.7h3.7L12,35z M25.7,35V14.2h3.5v12.1l3.4-3.5h4.3 l-4.4,4.1l4.7,8.1h-4.1l-2.7-5.2l-1.1,1v4.2H25.7z"/>
+   </svg>
+);
 
 // 1. WhatsApp Sticky Button
 const WhatsAppButton = () => (
@@ -55,7 +85,8 @@ const Navbar: React.FC<{
   setView: (v: ViewState) => void; 
   toggleMobileMenu: () => void;
   isMobileMenuOpen: boolean;
-}> = ({ currentView, setView, toggleMobileMenu, isMobileMenuOpen }) => {
+  onAdminClick: () => void;
+}> = ({ currentView, setView, toggleMobileMenu, isMobileMenuOpen, onAdminClick }) => {
   const navItems = [
     { id: 'home', label: 'Início', icon: <Home size={20} /> },
     { id: 'faq', label: 'FAQ', icon: <HelpCircle size={20} /> },
@@ -69,7 +100,7 @@ const Navbar: React.FC<{
         <div className="flex justify-between h-16">
           <div className="flex items-center cursor-pointer" onClick={() => setView('home')}>
              <div className="flex items-center gap-4">
-              <img src="microkids-logo-1.png" alt="Microkids" className="h-8 md:h-10 w-auto object-contain" />
+              <MicrokidsLogo />
               <span className="text-xs text-slate-500 uppercase tracking-widest border-l border-slate-300 pl-4 hidden sm:block font-medium">Portal do Vendedor</span>
             </div>
           </div>
@@ -91,7 +122,7 @@ const Navbar: React.FC<{
               </button>
             ))}
              <button
-                onClick={() => setView('admin')}
+                onClick={onAdminClick}
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
                   currentView === 'admin' 
                     ? 'bg-slate-100 text-slate-800' 
@@ -134,7 +165,7 @@ const Navbar: React.FC<{
               </button>
             ))}
             <button
-                onClick={() => { setView('admin'); toggleMobileMenu(); }}
+                onClick={() => { onAdminClick(); toggleMobileMenu(); }}
                 className="w-full text-left px-3 py-3 rounded-md text-base font-medium flex items-center gap-3 text-slate-500 hover:bg-slate-50"
               >
                 <Settings size={20} />
@@ -429,21 +460,72 @@ const AdminPanel: React.FC<{
   userLogs: UserLog[];
 }> = ({ faqs, setFaqs, docs, setDocs, news, setNews, userLogs }) => {
   const [activeTab, setActiveTab] = useState<'faq' | 'doc' | 'news' | 'users'>('faq');
-  const [formData, setFormData] = useState<any>({}); // Simplified for demo
+  
+  // States for Forms
+  const [faqForm, setFaqForm] = useState<Partial<FAQItem>>({});
+  const [docForm, setDocForm] = useState<{title: string, category: string, file: File | null}>({ title: '', category: '', file: null });
+  const [newsForm, setNewsForm] = useState<Partial<Announcement>>({ title: '', content: '', isUrgent: false });
 
+  // FAQ Handlers
   const handleAddFAQ = () => {
+    if (!faqForm.question || !faqForm.answer) return;
     const newItem: FAQItem = {
       id: Date.now().toString(),
-      question: formData.question || 'Nova Pergunta',
-      answer: formData.answer || 'Nova Resposta',
-      category: formData.category || 'Geral'
+      question: faqForm.question || '',
+      answer: faqForm.answer || '',
+      category: faqForm.category || 'Geral'
     };
     setFaqs([...faqs, newItem]);
-    setFormData({});
+    setFaqForm({});
   };
 
   const handleDeleteFAQ = (id: string) => {
     setFaqs(faqs.filter(f => f.id !== id));
+  };
+
+  // Document Handlers
+  const handleAddDoc = () => {
+    if (!docForm.title || !docForm.file) return;
+
+    // Simulate upload processing
+    const fileExtension = docForm.file.name.split('.').pop()?.toUpperCase();
+    const mockType = ['PDF', 'PPT', 'DOC', 'IMG'].includes(fileExtension || '') ? fileExtension as any : 'PDF';
+    const mockSize = (docForm.file.size / 1024 / 1024).toFixed(1) + ' MB';
+
+    const newDoc: DocumentItem = {
+      id: Date.now().toString(),
+      title: docForm.title,
+      category: docForm.category || 'Geral',
+      type: mockType,
+      size: mockSize,
+      date: new Date().toLocaleDateString('pt-BR')
+    };
+
+    setDocs([...docs, newDoc]);
+    setDocForm({ title: '', category: '', file: null });
+    // Reset file input manually if needed, but react state handles the logic
+  };
+
+  const handleDeleteDoc = (id: string) => {
+    setDocs(docs.filter(d => d.id !== id));
+  };
+
+  // News Handlers
+  const handleAddNews = () => {
+    if (!newsForm.title || !newsForm.content) return;
+    const newItem: Announcement = {
+      id: Date.now().toString(),
+      title: newsForm.title || '',
+      content: newsForm.content || '',
+      isUrgent: newsForm.isUrgent || false,
+      date: new Date().toLocaleDateString('pt-BR')
+    };
+    setNews([newItem, ...news]); // Add to top
+    setNewsForm({ title: '', content: '', isUrgent: false });
+  };
+
+  const handleDeleteNews = (id: string) => {
+    setNews(news.filter(n => n.id !== id));
   };
 
   return (
@@ -487,30 +569,31 @@ const AdminPanel: React.FC<{
         </div>
 
         <div className="p-6">
+          {/* FAQ MANAGEMENT */}
           {activeTab === 'faq' && (
             <div>
               <div className="mb-8 bg-slate-50 p-4 rounded-lg border border-slate-200">
                 <h3 className="font-semibold mb-4 text-slate-700">Adicionar Nova Pergunta</h3>
                 <div className="grid grid-cols-1 gap-4">
                   <input 
-                    className="p-2 border rounded" 
+                    className="p-2 border border-slate-700 rounded bg-slate-800 text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 outline-none" 
                     placeholder="Pergunta" 
-                    onChange={e => setFormData({...formData, question: e.target.value})}
-                    value={formData.question || ''}
+                    onChange={e => setFaqForm({...faqForm, question: e.target.value})}
+                    value={faqForm.question || ''}
                   />
                   <input 
-                    className="p-2 border rounded" 
+                    className="p-2 border border-slate-700 rounded bg-slate-800 text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 outline-none" 
                     placeholder="Categoria" 
-                    onChange={e => setFormData({...formData, category: e.target.value})}
-                    value={formData.category || ''}
+                    onChange={e => setFaqForm({...faqForm, category: e.target.value})}
+                    value={faqForm.category || ''}
                   />
                   <textarea 
-                    className="p-2 border rounded h-24" 
+                    className="p-2 border border-slate-700 rounded bg-slate-800 text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 outline-none h-24" 
                     placeholder="Resposta" 
-                    onChange={e => setFormData({...formData, answer: e.target.value})}
-                    value={formData.answer || ''}
+                    onChange={e => setFaqForm({...faqForm, answer: e.target.value})}
+                    value={faqForm.answer || ''}
                   />
-                  <button onClick={handleAddFAQ} className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 flex items-center justify-center gap-2">
+                  <button onClick={handleAddFAQ} className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 flex items-center justify-center gap-2 font-medium">
                     <Plus size={18} /> Adicionar
                   </button>
                 </div>
@@ -518,12 +601,71 @@ const AdminPanel: React.FC<{
 
               <div className="space-y-2">
                 {faqs.map(f => (
-                  <div key={f.id} className="flex justify-between items-center p-3 border rounded bg-white">
+                  <div key={f.id} className="flex justify-between items-center p-3 border rounded bg-white hover:bg-slate-50 transition-colors">
                     <div>
                       <span className="text-xs bg-slate-100 px-2 py-1 rounded text-slate-500 mr-2">{f.category}</span>
                       <span className="font-medium">{f.question}</span>
                     </div>
-                    <button onClick={() => handleDeleteFAQ(f.id)} className="text-red-500 hover:bg-red-50 p-2 rounded">
+                    <button onClick={() => handleDeleteFAQ(f.id)} className="text-red-500 hover:bg-red-50 p-2 rounded transition-colors" title="Excluir">
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* DOCUMENTS MANAGEMENT */}
+          {activeTab === 'doc' && (
+             <div>
+              <div className="mb-8 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                <h3 className="font-semibold mb-4 text-slate-700">Fazer Upload de Documento</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input 
+                    className="p-2 border border-slate-700 rounded bg-slate-800 text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 outline-none" 
+                    placeholder="Título do Documento" 
+                    onChange={e => setDocForm({...docForm, title: e.target.value})}
+                    value={docForm.title || ''}
+                  />
+                  <input 
+                    className="p-2 border border-slate-700 rounded bg-slate-800 text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 outline-none" 
+                    placeholder="Categoria (ex: Comercial)" 
+                    onChange={e => setDocForm({...docForm, category: e.target.value})}
+                    value={docForm.category || ''}
+                  />
+                  <div className="md:col-span-2">
+                    <label className="block text-sm text-slate-500 mb-1">Selecione o arquivo</label>
+                    <div className="flex items-center gap-2">
+                        <input 
+                            type="file" 
+                            className="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 bg-slate-800 rounded border border-slate-700"
+                            onChange={e => setDocForm({...docForm, file: e.target.files ? e.target.files[0] : null})}
+                        />
+                    </div>
+                  </div>
+                  <button 
+                    onClick={handleAddDoc} 
+                    disabled={!docForm.file || !docForm.title}
+                    className="md:col-span-2 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 flex items-center justify-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Upload size={18} /> Fazer Upload
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                {docs.map(d => (
+                  <div key={d.id} className="flex justify-between items-center p-3 border rounded bg-white hover:bg-slate-50 transition-colors">
+                    <div className="flex items-center gap-3">
+                       <div className={`p-2 rounded ${d.type === 'PDF' ? 'bg-red-50 text-red-500' : 'bg-blue-50 text-blue-500'}`}>
+                           <FileText size={16} />
+                       </div>
+                       <div>
+                           <p className="font-medium text-slate-800">{d.title}</p>
+                           <p className="text-xs text-slate-500">{d.category} • {d.size} • {d.date}</p>
+                       </div>
+                    </div>
+                    <button onClick={() => handleDeleteDoc(d.id)} className="text-red-500 hover:bg-red-50 p-2 rounded transition-colors" title="Excluir">
                       <Trash2 size={18} />
                     </button>
                   </div>
@@ -532,6 +674,61 @@ const AdminPanel: React.FC<{
             </div>
           )}
           
+          {/* ANNOUNCEMENTS MANAGEMENT */}
+          {activeTab === 'news' && (
+            <div>
+              <div className="mb-8 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                <h3 className="font-semibold mb-4 text-slate-700">Publicar Novo Comunicado</h3>
+                <div className="grid grid-cols-1 gap-4">
+                  <input 
+                    className="p-2 border border-slate-700 rounded bg-slate-800 text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 outline-none" 
+                    placeholder="Título do Comunicado" 
+                    onChange={e => setNewsForm({...newsForm, title: e.target.value})}
+                    value={newsForm.title || ''}
+                  />
+                  <div className="flex items-center gap-2">
+                    <input 
+                      type="checkbox" 
+                      id="urgent"
+                      checked={newsForm.isUrgent}
+                      onChange={e => setNewsForm({...newsForm, isUrgent: e.target.checked})}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                    />
+                    <label htmlFor="urgent" className="text-sm text-slate-700">Marcar como Urgente (aparecerá no topo)</label>
+                  </div>
+                  <textarea 
+                    className="p-2 border border-slate-700 rounded bg-slate-800 text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 outline-none h-24" 
+                    placeholder="Conteúdo do comunicado..." 
+                    onChange={e => setNewsForm({...newsForm, content: e.target.value})}
+                    value={newsForm.content || ''}
+                  />
+                  <button onClick={handleAddNews} className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 flex items-center justify-center gap-2 font-medium">
+                    <Bell size={18} /> Publicar
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {news.map(n => (
+                  <div key={n.id} className={`flex justify-between items-start p-4 border rounded bg-white hover:bg-slate-50 transition-colors ${n.isUrgent ? 'border-l-4 border-l-red-500' : ''}`}>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                          {n.isUrgent && <span className="text-xs font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded">URGENTE</span>}
+                          <span className="text-xs text-slate-400">{n.date}</span>
+                      </div>
+                      <h4 className="font-bold text-slate-800">{n.title}</h4>
+                      <p className="text-sm text-slate-600 mt-1 line-clamp-2">{n.content}</p>
+                    </div>
+                    <button onClick={() => handleDeleteNews(n.id)} className="text-red-500 hover:bg-red-50 p-2 rounded transition-colors" title="Excluir">
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* USERS LOG */}
           {activeTab === 'users' && (
              <div>
                 <div className="mb-6 flex justify-between items-end">
@@ -561,15 +758,96 @@ const AdminPanel: React.FC<{
                 </div>
              </div>
           )}
-
-          {(activeTab !== 'faq' && activeTab !== 'users') && (
-             <div className="text-center py-12 text-slate-400">
-               <Settings size={48} className="mx-auto mb-4 opacity-20" />
-               <p>Funcionalidade simplificada para esta demonstração.</p>
-               <p className="text-sm">A lógica seria idêntica à de FAQ.</p>
-             </div>
-          )}
         </div>
+      </div>
+    </div>
+  );
+};
+
+// 8. Admin Login Modal
+const AdminLoginModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  onLogin: () => void;
+}> = ({ isOpen, onClose, onLogin }) => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  if (!isOpen) return null;
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    const adminUser = ALLOWED_ADMINS.find(
+      (admin) => admin.username.toLowerCase() === username.trim().toLowerCase() && admin.password === password
+    );
+
+    if (adminUser) {
+      onLogin();
+      setUsername('');
+      setPassword('');
+    } else {
+      setError('Credenciais inválidas.');
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 relative">
+        <button 
+          onClick={onClose}
+          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+        >
+          <X size={24} />
+        </button>
+
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Settings className="text-blue-600" size={32} />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-800">Acesso Administrativo</h2>
+          <p className="text-slate-500 text-sm mt-1">Área restrita a colaboradores autorizados.</p>
+        </div>
+
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Usuário</label>
+            <input
+              type="text"
+              required
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full px-4 py-3 bg-slate-800 border border-slate-700 text-white placeholder-slate-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              placeholder="Microkids"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Senha</label>
+             <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-3 bg-slate-800 border border-slate-700 text-white placeholder-slate-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all tracking-widest text-center text-lg"
+              placeholder="****"
+            />
+          </div>
+
+          {error && (
+            <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm text-center">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20"
+          >
+            Acessar Painel
+          </button>
+        </form>
       </div>
     </div>
   );
@@ -584,6 +862,10 @@ const App: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
+  // Admin Auth State
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+
   // "Database" State
   const [faqs, setFaqs] = useState<FAQItem[]>(INITIAL_FAQS);
   const [docs, setDocs] = useState<DocumentItem[]>(INITIAL_DOCS);
@@ -595,6 +877,20 @@ const App: React.FC = () => {
     setSearchQuery(q);
   };
 
+  const handleAdminClick = () => {
+    if (isAdminAuthenticated) {
+      setCurrentView('admin');
+    } else {
+      setShowAdminLogin(true);
+    }
+  };
+
+  const handleAdminLoginSuccess = () => {
+    setIsAdminAuthenticated(true);
+    setShowAdminLogin(false);
+    setCurrentView('admin');
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       <Navbar 
@@ -602,6 +898,7 @@ const App: React.FC = () => {
         setView={setCurrentView} 
         toggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         isMobileMenuOpen={isMobileMenuOpen}
+        onAdminClick={handleAdminClick}
       />
       
       <main className="flex-grow">
@@ -627,13 +924,19 @@ const App: React.FC = () => {
 
       <footer className="bg-white border-t border-slate-200 mt-12 py-8">
         <div className="max-w-7xl mx-auto px-4 text-center flex flex-col items-center gap-4">
-          <img src="microkids-logo-2.png" alt="Microkids" className="h-8 w-auto opacity-40 hover:opacity-100 transition-opacity" />
+          <MicrokidsIcon />
           <p className="text-slate-500 text-sm">© {new Date().getFullYear()} Microkids Tecnologia Educacional. Uso interno.</p>
         </div>
       </footer>
 
       <WhatsAppButton />
       <ChatWidget />
+      
+      <AdminLoginModal 
+        isOpen={showAdminLogin}
+        onClose={() => setShowAdminLogin(false)}
+        onLogin={handleAdminLoginSuccess}
+      />
     </div>
   );
 };
